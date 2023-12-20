@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id         String   @id @unique @default(uuid())
+  type       Role     @default(Usuario)
+  firstName  String
+  middleName String
+  lastName   String
+  email      String   @unique
+  password   String
+  birthDate  DateTime
+}
+
+// ...
+
+model Cart {
+  id       String     @id @default(uuid())
+  userId   String
+  status   CartStatus
+  products Product[]
+
+  @@unique([userId, status])
+}
+
+model Product {
+  id          String  @id @default(uuid())
+  nome        String  @unique
+  description String
+  price       Float
+  stock       Int
+  type        Type    @default(Camisa)
+  imageUrl    String?
+  cartId      String? // Adicione um campo de referência para o carrinho
+  cart        Cart?   @relation(fields: [cartId], references: [id]) // Adicione a relação inversa
+
+  @@index([cartId], name: "cartId")
+}
+
+enum CartStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum Role {
+  Usuario
+  Admin
+}
+
+enum Type {
+  Camisa
+  Camiseta
+  Casaco
+  Bermusa
+  Jeans
+  Tenis
+}
