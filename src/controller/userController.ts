@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { Role } from "@prisma/client";
 
-const saltRounds = 10;
+const saltRounds = 10; // Numero para gerar o hash da senha
 
 const handleUserErrors = (res: Response, status: number, message: string) => {
   console.error(message);
