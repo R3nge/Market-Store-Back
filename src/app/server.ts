@@ -1,13 +1,13 @@
 import express, { response } from "express";
-import routes from "./routes";
-import { produtoRouter, userRouter, permissionRouter } from "./router";
+import { produtoRouter, userRouter, permissionRouter } from "../router";
 import { config } from "dotenv";
 import cors from "cors";
 config();
 const app = express();
 
+//Importando rotas
+
 app.use(express.json());
-app.use(routes);
 app.use(cors());
 app.use(produtoRouter);
 app.use(userRouter);
@@ -26,4 +26,4 @@ const server = app.listen(PORT, () =>
   console.log(`Server is running on PORT: ${PORT}`)
 );
 
-export default { app, server, routes };
+export default { app, server };
