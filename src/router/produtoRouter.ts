@@ -27,9 +27,11 @@ router.post("/Produto/UploadImagem", upload.any(), async (req, res) => {
     return res.status(200).json({ success: true, imageUrl: urlImgur });
   } catch (err) {
     console.error("Erro ao fazer upload de imagem:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Erro ao fazer upload de imagem." });
+    res.status(500).json({
+      success: false,
+      message: "Erro ao fazer upload de imagem.",
+      error: err.message, // Adicione a mensagem de erro
+    });
   }
 });
 
@@ -48,16 +50,18 @@ router.post(
           .json({ success: false, message: "Nenhum arquivo enviado." });
       }
 
-      // Adicione diretamente a propriedade "file" ao objeto Request
-      req.file = file;
+      // Adicione diretamente a propriedade "file" ao corpo da requisição
+      req.body.file = file;
 
       // Chame o controlador para criar o produto
       await produtoController.criarProduto(req, res);
     } catch (err) {
       console.error("Erro ao criar produto:", err);
-      res
-        .status(500)
-        .json({ success: false, message: "Erro ao criar produto." });
+      res.status(500).json({
+        success: false,
+        message: "Erro ao criar produto.",
+        error: err.message, // Adicione a mensagem de erro
+      });
     }
   }
 );
