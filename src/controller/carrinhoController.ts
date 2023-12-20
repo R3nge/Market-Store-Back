@@ -1,7 +1,7 @@
 import { CartStatus } from "@prisma/client";
 import { Request, Response } from "express";
 import { prisma } from "../database/prisma";
-import { twilioClient } from "twilio";
+// import { twilioClient } from "twilio";
 
 // Configure suas credenciais Twilio
 const accountSid = "SuaContaSid";
@@ -80,45 +80,45 @@ export const buscarCarrinho = async (req: Request, res: Response) => {
   }
 };
 
-// Rota para finalizar a compra e enviar para o WhatsApp do vendedor
-export const finalizarCompra = async (req: Request, res: Response) => {
-  const { userId, items } = req.body;
+// // Rota para finalizar a compra e enviar para o WhatsApp do vendedor
+// export const finalizarCompra = async (req: Request, res: Response) => {
+//   const { userId, items } = req.body;
 
-  try {
-    const itemsDetails = await prisma.product.findMany({
-      where: { id: { in: items } },
-    });
+//   try {
+//     const itemsDetails = await prisma.product.findMany({
+//       where: { id: { in: items } },
+//     });
 
-    const messageBody = `Novo pedido de compra:\n${itemsDetails
-      .map((item) => `${item.nome}: R$ ${item.price.toFixed(2)}`)
-      .join("\n")}`;
+//     const messageBody = `Novo pedido de compra:\n${itemsDetails
+//       .map((item) => `${item.nome}: R$ ${item.price.toFixed(2)}`)
+//       .join("\n")}`;
 
-    // Substitua o número do vendedor pelo número real do vendedor
-    const vendedorPhoneNumber = "Número_do_vendedor";
+//     // Substitua o número do vendedor pelo número real do vendedor
+//     const vendedorPhoneNumber = "Número_do_vendedor";
 
-    // Envie a mensagem para o WhatsApp do vendedor usando a API do Twilio
-    await twilioClient.messages.create({
-      body: messageBody,
-      from: "seu_numero_no_twilio",
-      to: `whatsapp:${vendedorPhoneNumber}`,
-    });
+//     // Envie a mensagem para o WhatsApp do vendedor usando a API do Twilio
+//     await twilioClient.messages.create({
+//       body: messageBody,
+//       from: "seu_numero_no_twilio",
+//       to: `whatsapp:${vendedorPhoneNumber}`,
+//     });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Pedido enviado com sucesso." });
-  } catch (err) {
-    console.error(err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Erro ao processar o pedido." });
-  }
-};
+//     return res
+//       .status(200)
+//       .json({ success: true, message: "Pedido enviado com sucesso." });
+//   } catch (err) {
+//     console.error(err);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Erro ao processar o pedido." });
+//   }
+// };
 
 const cartController = {
   criarCarrinho,
   deletarCarrinho,
   buscarCarrinho,
-  finalizarCompra, // Adiciona a nova rota para finalizar a compra
+  // finalizarCompra, // Adiciona a nova rota para finalizar a compra
 };
 
 export default cartController;
