@@ -2,6 +2,7 @@ import { Router } from "express";
 import { userCreateSchema, userLoginSchema } from "../schemas";
 import { validate } from "../middleware";
 import usuarioController from "../controller/userController"; // Modificado para "usuarioController" com "u" minúsculo
+import userController from "../controller/userController";
 
 const router = Router();
 
@@ -23,6 +24,10 @@ router.get("/Usuario/BuscarUsuarioUnico/:id", async (req, res) => {
 
 router.get("/Usuario/BuscarUsuarios", async (req, res) => {
   usuarioController.buscarUsuarios(req, res);
+});
+
+router.post("/User/Login", async (req, res) => {
+  userController.fazerLogin(req, res);
 });
 
 export default router;
