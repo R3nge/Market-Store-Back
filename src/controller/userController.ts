@@ -10,7 +10,12 @@ const handleUserErrors = (res: Response, status: number, message: string) => {
   console.error(message);
   return res.status(status).json({ success: false, message });
 };
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
+// Defina o tipo User para representar o usuário autenticado
+interface User {
+  role: Role;
+  // Adicione outras propriedades do usuário, se necessário
+}
 
 export const criarUsuario = async (req: Request, res: Response) => {
   const { email, password, fullName, birthDate, type, Role } = req.body || {};
@@ -92,13 +97,14 @@ export const fazerLogin = async (req: Request, res: Response) => {
     await prisma.$disconnect();
   }
 };
-
-export const deletarUsuario = async (req: Request, res: Response) => {
+export const deletarUsuario = async (req: any, res: Response) => {
   const { id } = req.params;
 
   try {
     // Verifique se o usuário autenticado tem permissão para deletar usuários
-    if (req.user.role !== Role.Admin) {
+    const userRole = req.user?.role;
+
+    if (userRole !== Role.Admin) {
       return handleUserErrors(
         res,
         403,
@@ -119,12 +125,34 @@ export const deletarUsuario = async (req: Request, res: Response) => {
   }
 };
 
-export const buscarUsuarioUnico = async (req: Request, res: Response) => {
+export const buscarUsuarios = async (req: any, res: Response) => {
+  try {
+    // Verifique se o usuário autenticado tem permissão para buscar todos os usuários
+    const userRole = req.user?.role;
+
+    if (userRole !== Role.Admin) {
+      return handleUserErrors(
+        res,
+        403,
+        "Permissão negada. Apenas administradores podem buscar todos os usuários."
+      );
+    }
+
+    const todosUsuarios = await prisma.user.findMany({});
+    return res.status(200).json(todosUsuarios);
+  } catch (err) {
+    return handleUserErrors(res, 500, "Erro ao buscar usuários.");
+  }
+};
+
+export const buscarUsuarioUnico = async (req: any, res: Response) => {
   const { id } = req.params;
 
   try {
     // Verifique se o usuário autenticado tem permissão para buscar usuários únicos
-    if (req.user.role !== Role.Admin) {
+    const userRole = req.user?.role;
+
+    if (userRole !== Role.Admin) {
       return handleUserErrors(
         res,
         403,
@@ -143,24 +171,6 @@ export const buscarUsuarioUnico = async (req: Request, res: Response) => {
     return res.status(200).json(usuario);
   } catch (err) {
     return handleUserErrors(res, 500, "Erro ao buscar usuário único.");
-  }
-};
-
-export const buscarUsuarios = async (req: Request, res: Response) => {
-  try {
-    // Verifique se o usuário autenticado tem permissão para buscar todos os usuários
-    if (req.user.role !== Role.Admin) {
-      return handleUserErrors(
-        res,
-        403,
-        "Permissão negada. Apenas administradores podem buscar todos os usuários."
-      );
-    }
-
-    const todosUsuarios = await prisma.user.findMany({});
-    return res.status(200).json(todosUsuarios);
-  } catch (err) {
-    return handleUserErrors(res, 500, "Erro ao buscar usuários.");
   }
 };
 

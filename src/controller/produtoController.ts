@@ -2,31 +2,48 @@ import { prisma } from "../database/prisma";
 import { Request, Response } from "express";
 import imgur from "imgur";
 import { produtoCreateSchema } from "../schemas/produtoSchema";
+import { Role, User } from "@prisma/client";
+import axios from "axios";
 
-interface CustomRequest extends Request {
-  file?: any;
-}
+const handleUserErrors = (res: Response, status: number, message: string) => {
+  console.error(message);
+  return res.status(status).json({ success: false, message });
+};
 
-export const criarProduto = async (req: CustomRequest, res: Response) => {
+export const criarProduto = async (req: Request, res: Response) => {
   try {
     const { nome, description, price, stock, type, imageUrl } = req.body;
-    const { file } = req;
 
-    if (!file) {
+    // Verifica se a URL da imagem foi fornecida
+    if (!imageUrl) {
+      console.log("Erro: Nenhuma URL de imagem fornecida.");
       return res
         .status(400)
-        .json({ success: false, message: "Nenhum arquivo enviado." });
+        .json({ success: false, message: "Nenhuma URL de imagem fornecida." });
     }
 
-    // Aqui você pode acessar os arquivos através de req.files
-    const fileBuffer = file.buffer;
+    // Aqui você precisa implementar a lógica para fazer upload da imagem para o Imgur
+    // ou salvar diretamente no banco de dados. Vou fornecer um exemplo usando o Axios
+    // para fazer uma requisição ao Imgur.
 
-    // Aqui você precisa implementar ou chamar a função que faz o upload da imagem para o Imgur
-    const urlImgur = await uploadImagemParaImgur(fileBuffer);
+    // // Substitua 'SEU_CLIENT_ID' pelo seu Client ID do Imgur
+    // const clientId = "SEU_CLIENT_ID";
 
-    // Restante do código...
+    // // Faz a requisição ao endpoint de upload do Imgur
+    // const imgurResponse = await axios.post(
+    //   "https://api.imgur.com/3/image",
+    //   { image: imageUrl },
+    //   {
+    //     headers: {
+    //       Authorization: `Client-ID ${clientId}`,
+    //     },
+    //   }
+    // );
 
-    // Criar um novo produto com o link da imagem
+    // Obtém a URL da imagem no Imgur a partir da resposta
+    // const urlImgur = imgurResponse.data.data.link;
+
+    // Se necessário, você pode salvar a URLImgur no banco de dados
     const novoProduto = await prisma.product.create({
       data: {
         nome,
@@ -34,23 +51,20 @@ export const criarProduto = async (req: CustomRequest, res: Response) => {
         price,
         stock,
         type,
-        imageUrl: imageUrl || urlImgur, // Usa a URL obtida do Imgur ou a fornecida pelos usuários
+        imageUrl,
       },
     });
 
-    // Retornar o novo produto criado
+    // Retorna o novo produto criado
     return res.status(201).json({ success: true, data: novoProduto });
   } catch (err) {
-    // Se ocorrer um erro durante a criação, retornar uma resposta de erro
+    // Se ocorrer um erro durante a criação, retorna uma resposta de erro
     console.error("Erro ao criar produto:", err);
     return res
       .status(500)
       .json({ success: false, message: "Erro ao criar produto." });
   }
 };
-
-// Restante do código...
-
 // Função para fazer upload de uma imagem para o Imgur
 async function uploadImagemParaImgur(imagemBuffer: Buffer): Promise<string> {
   // Aqui você precisa implementar a lógica para fazer upload da imagem para o Imgur
@@ -76,22 +90,23 @@ export const pegarProdutos = async (req: Request, res: Response) => {
 };
 
 // Operação para excluir um produto
-export const deletarProduto = async (req: Request, res: Response) => {
-  const { codigo } = req.params;
+export const deletarProduto = async (req: any, res: Response) => {
+  const { id } = req.params;
 
   try {
-    // Verifique se o usuário possui permissão para excluir produtos
-    if (req.user.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Permissão negada. Apenas administradores podem excluir produtos.",
-      });
-    }
+    // Verifique se o usuário autenticado tem permissão para deletar usuários
+    const userRole = req.user?.role;
 
+    if (userRole !== Role.Admin) {
+      return handleUserErrors(
+        res,
+        403,
+        "Permissão negada. Apenas administradores podem deletar usuários."
+      );
+    }
     // Exclua o produto pelo código
     await prisma.product.delete({
-      where: { id: codigo },
+      where: { id: id },
     });
 
     // Retorne uma resposta de sucesso
@@ -108,13 +123,15 @@ export const deletarProduto = async (req: Request, res: Response) => {
 };
 
 // Operação para atualizar um produto
-export const atualizarProduto = async (req: Request, res: Response) => {
-  const { codigo } = req.params;
-  const { nome, description, price, stock, type, imageUrl } = req.body;
 
+export const atualizarProduto = async (req: any, res: Response) => {
+  const { id } = req.params;
+  const { nome, description, price, stock, type, imageUrl } = req.body;
   try {
-    // Verifique se o usuário possui permissão para atualizar produtos
-    if (req.user.role !== "Admin") {
+    // Verifique se o usuário autenticado tem permissão para deletar usuários
+    const userRole = req.user?.role;
+
+    if (userRole !== Role.Admin) {
       return res.status(403).json({
         success: false,
         message:
@@ -124,7 +141,7 @@ export const atualizarProduto = async (req: Request, res: Response) => {
 
     // Atualize o produto pelo código
     const produtoAtualizado = await prisma.product.update({
-      where: { id: codigo },
+      where: { id: id },
       data: {
         nome,
         description,

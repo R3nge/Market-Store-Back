@@ -31,7 +31,7 @@ model Album {
 
 model Product {
   id          String  @id @default(uuid())
-  nome        String  @unique
+  nome        String
   description String
   price       Float
   stock       Int
