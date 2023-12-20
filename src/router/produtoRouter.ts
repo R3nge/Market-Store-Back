@@ -37,7 +37,6 @@ router.post("/Produto/UploadImagem", upload.any(), async (req, res) => {
 router.post(
   "/Produto/CriarProduto",
   upload.single("file"),
-  authenticateJWT,
   async (req, res) => {
     try {
       const { nome, description, price, stock, type } = req.body;
