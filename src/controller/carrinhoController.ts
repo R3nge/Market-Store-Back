@@ -1,8 +1,8 @@
-import { CartStatus, Prisma } from "@prisma/client";
+import { CartStatus } from "@prisma/client";
 import { Request, Response } from "express";
 import { prisma } from "../database/prisma";
 
-const handleErrors = (res: Response, status: number, message: string) => {
+const handleCartErrors = (res: Response, status: number, message: string) => {
   console.error(message);
   return res.status(status).json({ success: false, message });
 };
@@ -17,7 +17,11 @@ export const criarCarrinho = async (req: Request, res: Response) => {
     });
 
     if (existingCart) {
-      return handleErrors(res, 400, "Carrinho já existe para este usuário.");
+      return handleCartErrors(
+        res,
+        400,
+        "Carrinho já existe para este usuário."
+      );
     }
 
     const newCart = await prisma.cart.create({
@@ -30,7 +34,7 @@ export const criarCarrinho = async (req: Request, res: Response) => {
 
     res.status(201).json(newCart);
   } catch (err) {
-    return handleErrors(res, 500, "Erro ao criar carrinho.");
+    return handleCartErrors(res, 500, "Erro ao criar carrinho.");
   }
 };
 
@@ -38,13 +42,8 @@ export const deletarCarrinho = async (req: Request, res: Response) => {
   const { userId } = req.params;
 
   try {
-    await prisma.cart.delete({
-      where: {
-        userId_status: {
-          userId,
-          status: CartStatus.IN_PROGRESS,
-        },
-      },
+    await prisma.cart.deleteMany({
+      where: { userId, status: CartStatus.IN_PROGRESS },
     });
 
     return res.json({
@@ -52,7 +51,7 @@ export const deletarCarrinho = async (req: Request, res: Response) => {
       message: "Carrinho excluído com sucesso.",
     });
   } catch (err) {
-    return handleErrors(res, 500, "Erro ao excluir carrinho.");
+    return handleCartErrors(res, 500, "Erro ao excluir carrinho.");
   }
 };
 
@@ -66,12 +65,12 @@ export const buscarCarrinho = async (req: Request, res: Response) => {
     });
 
     if (!carrinho || carrinho.length === 0) {
-      return handleErrors(res, 404, "Carrinho não encontrado.");
+      return handleCartErrors(res, 404, "Carrinho não encontrado.");
     }
 
     return res.status(200).json(carrinho);
   } catch (err) {
-    return handleErrors(res, 500, "Erro ao buscar carrinho.");
+    return handleCartErrors(res, 500, "Erro ao buscar carrinho.");
   }
 };
 
