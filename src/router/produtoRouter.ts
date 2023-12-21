@@ -22,7 +22,7 @@ router.put("/Produto/AtualizarProduto/:id", (req, res) => {
 });
 
 router.get("/Produto/PegarProdutosPorTipo/:type", (req, res) => {
-  produtoController.pegarProdutos(req, res);
+  produtoController.pegarProdutosPorTipo(req, res);
 });
 
 // Rota para obter produtos por preço
