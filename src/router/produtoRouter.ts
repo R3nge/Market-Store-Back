@@ -21,4 +21,13 @@ router.put("/Produto/AtualizarProduto/:id", (req, res) => {
   produtoController.atualizarProduto(req, res);
 });
 
+router.get("/Produto/PegarProdutosPorTipo/:type", (req, res) => {
+  produtoController.pegarProdutos(req, res);
+});
+
+// Rota para obter produtos por preço
+router.get("/Produto/PegarProdutosPorPreco", (req, res) => {
+  produtoController.pegarProdutosPorPreco(req, res);
+});
+
 export default router;

@@ -1,8 +1,8 @@
 import { prisma } from "../database/prisma";
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import imgur from "imgur";
 import { produtoCreateSchema } from "../schemas/produtoSchema";
-import { Role, User } from "@prisma/client";
+import { Role, Type, User } from "@prisma/client";
 import axios from "axios";
 
 const handleUserErrors = (res: Response, status: number, message: string) => {
@@ -21,27 +21,6 @@ export const criarProduto = async (req: Request, res: Response) => {
         .status(400)
         .json({ success: false, message: "Nenhuma URL de imagem fornecida." });
     }
-
-    // Aqui você precisa implementar a lógica para fazer upload da imagem para o Imgur
-    // ou salvar diretamente no banco de dados. Vou fornecer um exemplo usando o Axios
-    // para fazer uma requisição ao Imgur.
-
-    // // Substitua 'SEU_CLIENT_ID' pelo seu Client ID do Imgur
-    // const clientId = "SEU_CLIENT_ID";
-
-    // // Faz a requisição ao endpoint de upload do Imgur
-    // const imgurResponse = await axios.post(
-    //   "https://api.imgur.com/3/image",
-    //   { image: imageUrl },
-    //   {
-    //     headers: {
-    //       Authorization: `Client-ID ${clientId}`,
-    //     },
-    //   }
-    // );
-
-    // Obtém a URL da imagem no Imgur a partir da resposta
-    // const urlImgur = imgurResponse.data.data.link;
 
     // Se necessário, você pode salvar a URLImgur no banco de dados
     const novoProduto = await prisma.product.create({
@@ -162,6 +141,53 @@ export const atualizarProduto = async (req: any, res: Response) => {
   }
 };
 
+// Pegar produto por tipo ( Camisa Calça Etc)
+
+export const pegarProdutosPorTipo = async (req: Request, res: Response) => {
+  try {
+    const { type } = req.params;
+
+    // Certifique-se de que o valor fornecido para 'type' é uma opção válida da enumeração Type
+    if (!Object.values(type).includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Tipo de produto inválido.",
+      });
+    }
+
+    // Obtenha produtos do banco de dados com base no tipo
+    const produtosPorTipo = await prisma.product.findMany({
+      where: { type: type as Type }, // Converta para o tipo esperado pelo Prisma
+    });
+
+    // Retorne a lista de produtos por tipo
+    return res.status(200).json(produtosPorTipo);
+  } catch (err) {
+    // Se ocorrer um erro durante a busca, retorne uma resposta de erro
+    return res
+      .status(500)
+      .json({ success: false, message: "Erro ao buscar produtos por tipo." });
+  }
+};
+
+// Operação para obter produtos por preço
+export const pegarProdutosPorPreco = async (req: Request, res: Response) => {
+  try {
+    // Ordene os produtos por preço
+    const produtosPorPreco = await prisma.product.findMany({
+      orderBy: { price: "asc" }, // ou "desc" para ordem decrescente
+    });
+
+    // Retorne a lista de produtos por preço
+    return res.status(200).json(produtosPorPreco);
+  } catch (err) {
+    // Se ocorrer um erro durante a busca, retorne uma resposta de erro
+    return res
+      .status(500)
+      .json({ success: false, message: "Erro ao buscar produtos por preço." });
+  }
+};
+
 // Exporte o controlador de produtos
 const produtoController = {
   criarProduto,
@@ -169,6 +195,8 @@ const produtoController = {
   deletarProduto,
   atualizarProduto,
   uploadImagemParaImgur,
+  pegarProdutosPorTipo,
+  pegarProdutosPorPreco,
 };
 
 export default produtoController;
