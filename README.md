@@ -35,7 +35,7 @@ src/
 
 ⚙️ Instalação e Uso
 # Clonar o repositório
-git clone https://github.com/SEU-USUARIO/Market-Store-Back.git
+git clone https://github.com/R3nge/Market-Store-Back.git
 
 # Acessar a pasta do projeto
 cd Market-Store-Back
@@ -79,3 +79,4 @@ npm run database     # Executar migrations do banco
 📄 Licença
 
 Este projeto está licenciado sob a licença ISC.
+
